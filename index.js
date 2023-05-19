@@ -137,7 +137,6 @@ const randHashString = (len) => {
 //initial state
 let tasks = {};
 const samplingInterval = 500; //ms
-let serviceRunning = false;
 
 const deleteTask = (taskId) => {
   delete tasks[taskId];
@@ -145,7 +144,6 @@ const deleteTask = (taskId) => {
 
 const taskRunner = async () => {
   try {
-    if (!serviceRunning) return;
 
     const now = Date.now();
     let promises = [];
@@ -173,7 +171,6 @@ const taskRunner = async () => {
 };
 
 const register = () => {
-  if (!serviceRunning)
     return ForegroundService.registerForegroundTask("myTaskName", taskRunner);
 };
 
@@ -199,7 +196,6 @@ const start = async ({
   setOnlyAlertOnce,
 }) => {
   try {
-    if (!serviceRunning) {
       await ForegroundService.startService({
         id,
         title,
@@ -223,14 +219,12 @@ const start = async ({
         color,
         setOnlyAlertOnce,
       });
-      serviceRunning = true;
       await ForegroundService.runTask({
         taskName: "myTaskName",
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
       });
-    } else console.log("Foreground service is already running.");
   } catch (error) {
     throw error;
   }
@@ -281,29 +275,23 @@ const update = async ({
       setOnlyAlertOnce,
       color,
     });
-    if (!serviceRunning) {
-      serviceRunning = true;
       await ForegroundService.runTask({
         taskName: "myTaskName",
         delay: samplingInterval,
         loopDelay: samplingInterval,
         onLoop: true,
       });
-    }
   } catch (error) {
     throw error;
   }
 };
 
 const stop = () => {
-  serviceRunning = false;
   return ForegroundService.stopService();
 };
 const stopAll = () => {
-  serviceRunning = false;
   return ForegroundService.stopServiceAll();
 };
-const is_running = () => serviceRunning;
 
 const add_task = (
   task,
@@ -387,7 +375,6 @@ const ReactNativeForegroundService = {
   update,
   stop,
   stopAll,
-  is_running,
   add_task,
   update_task,
   remove_task,
